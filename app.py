@@ -225,18 +225,6 @@ def main():
         if image is None:
             st.error("❌ Failed to load image. Please try another file.")
             return
-        else:
-            # Announce image uploaded
-            if auto_play:
-                components.html("""
-                <script>
-                if ('speechSynthesis' in window) {
-                    const utterance = new SpeechSynthesisUtterance('Image uploaded successfully. Analyzing now.');
-                    utterance.rate = 1.0;
-                    window.speechSynthesis.speak(utterance);
-                }
-                </script>
-                """, height=0)
         
         # Display image
         st.divider()

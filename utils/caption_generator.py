@@ -31,15 +31,18 @@ def generate_caption(image, processor, model, device, detail_level="detailed"):
         if detail_level == "very_detailed":
             num_beams = 8
             temperature = 0.9
-            repetition_penalty = 1.2
+            repetition_penalty = 2.0  # Increased to prevent repetition
+            no_repeat_ngram_size = 3  # Prevent 3-word phrases from repeating
         elif detail_level == "detailed":
             num_beams = 5
             temperature = 1.0
-            repetition_penalty = 1.1
+            repetition_penalty = 2.5  # Much higher to stop repetition
+            no_repeat_ngram_size = 3
         else:  # brief
             num_beams = 3
             temperature = 1.0
-            repetition_penalty = 1.0
+            repetition_penalty = 1.5
+            no_repeat_ngram_size = 2
         
         # Generate caption
         with torch.no_grad():
@@ -50,6 +53,7 @@ def generate_caption(image, processor, model, device, detail_level="detailed"):
                 num_beams=num_beams,
                 temperature=temperature,
                 repetition_penalty=repetition_penalty,
+                no_repeat_ngram_size=no_repeat_ngram_size,
                 length_penalty=1.0,
                 early_stopping=True
             )
@@ -67,7 +71,8 @@ def generate_caption(image, processor, model, device, detail_level="detailed"):
                     num_beams=10,
                     do_sample=True,
                     top_k=50,
-                    top_p=0.95
+                    top_p=0.95,
+                    no_repeat_ngram_size=3
                 )
             caption2 = processor.decode(output2[0], skip_special_tokens=True)
             # Use the longer, more detailed caption
