@@ -3,6 +3,7 @@ AI Image Narrator - Accessible Image Description Tool
 Main Streamlit Application
 """
 
+import base64
 import streamlit as st
 from PIL import Image
 import os
@@ -178,18 +179,6 @@ def main():
         return
     
     st.success("✅ Models loaded successfully!")
-
-    # Announce to user
-    if auto_play:
-        components.html("""
-        <script>
-        if ('speechSynthesis' in window) {
-            const utterance = new SpeechSynthesisUtterance('Models loaded successfully. You can now upload an image.');
-            utterance.rate = 1.0;
-            window.speechSynthesis.speak(utterance);
-        }
-        </script>
-        """, height=0)
     
     # File uploader with camera option
     st.divider()
@@ -345,9 +334,21 @@ def main():
                 if audio_file and os.path.exists(audio_file):
                     st.markdown("#### 🔊 Listen to Description:")
                     
-                    # Audio player
+                    # Audio player with auto-play
                     with open(audio_file, 'rb') as audio:
                         audio_bytes = audio.read()
+                    
+                    if auto_play:
+                        # Auto-play using HTML audio element
+                        audio_base64 = base64.b64encode(audio_bytes).decode()
+                        audio_html = f"""
+                        <audio autoplay>
+                            <source src="data:audio/mp3;base64,{audio_base64}" type="audio/mp3">
+                        </audio>
+                        """
+                        components.html(audio_html, height=0)
+                        st.audio(audio_bytes, format='audio/mp3')
+                    else:
                         st.audio(audio_bytes, format='audio/mp3')
                         
                         # Add speed control info
