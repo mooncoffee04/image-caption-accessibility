@@ -8,8 +8,8 @@ DEVICE = "cpu"  # Will auto-detect GPU if available
 # Caption Settings
 CAPTION_LENGTHS = {
     "brief": {"max_length": 30, "min_length": 10},
-    "detailed": {"max_length": 50, "min_length": 20},
-    "very_detailed": {"max_length": 100, "min_length": 30}
+    "detailed": {"max_length": 75, "min_length": 30},
+    "very_detailed": {"max_length": 150, "min_length": 50}
 }
 
 # OCR Settings

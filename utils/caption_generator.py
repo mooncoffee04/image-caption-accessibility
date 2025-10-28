@@ -5,6 +5,33 @@ Caption generation utilities
 import torch
 from config import CAPTION_LENGTHS
 
+def get_few_shot_examples(detail_level):
+    """
+    Get few-shot examples for better caption generation
+    
+    Args:
+        detail_level: "brief", "detailed", or "very_detailed"
+        
+    Returns:
+        str: Few-shot prompt examples
+    """
+    if detail_level == "very_detailed":
+        return """Example 1: A golden retriever dog with a shiny coat is playing fetch with a red ball on lush green grass in a sunny park. The dog appears happy and energetic, with its tongue out. Trees are visible in the background, and the lighting suggests it's late afternoon.
+
+Example 2: A woman in her thirties wearing a blue dress and white sneakers is sitting on a wooden bench, reading a book. She has curly brown hair and glasses. The bench is located in what appears to be a public garden with colorful flowers around. The scene conveys a peaceful, relaxing atmosphere.
+
+Now describe this image with similar detail:"""
+    
+    elif detail_level == "detailed":
+        return """Example 1: A golden retriever playing with a red ball on green grass in a park during daytime.
+
+Example 2: A woman in a blue dress sitting on a wooden bench reading a book in a garden with flowers.
+
+Now describe this image:"""
+    
+    else:  # brief
+        return "Describe this image briefly:"
+
 
 def generate_caption(image, processor, model, device, detail_level="detailed"):
     """
@@ -24,8 +51,11 @@ def generate_caption(image, processor, model, device, detail_level="detailed"):
         # Get length parameters
         length_params = CAPTION_LENGTHS.get(detail_level, CAPTION_LENGTHS["detailed"])
         
-        # Process image
-        inputs = processor(image, return_tensors="pt").to(device)
+        # Get few-shot examples
+        prompt = get_few_shot_examples(detail_level)
+        
+        # Process image with few-shot prompt
+        inputs = processor(image, text=prompt, return_tensors="pt").to(device)
         
         # Generate caption
         with torch.no_grad():
