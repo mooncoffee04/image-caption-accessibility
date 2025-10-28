@@ -8,7 +8,7 @@ from config import CAPTION_LENGTHS
 
 def generate_caption(image, processor, model, device, detail_level="detailed"):
     """
-    Generate image caption with specified detail level
+    Generate image caption with specified detail level using few-shot learning
     
     Args:
         image: PIL Image object
@@ -24,16 +24,22 @@ def generate_caption(image, processor, model, device, detail_level="detailed"):
         # Get length parameters
         length_params = CAPTION_LENGTHS.get(detail_level, CAPTION_LENGTHS["detailed"])
         
-        # Add detailed prompt for better descriptions
-        if detail_level == "very_detailed":
-            prompt = "Describe this image in detail, including colors, objects, people, activities, setting, and mood:"
-        elif detail_level == "detailed":
-            prompt = "Describe this image, including the main subjects and their actions:"
-        else:
-            prompt = "Briefly describe this image:"
+        # Process image WITHOUT text prompt (BLIP works better this way)
+        inputs = processor(image, return_tensors="pt").to(device)
         
-        # Process image with prompt
-        inputs = processor(image, text=prompt, return_tensors="pt").to(device)
+        # Adjust generation parameters based on detail level
+        if detail_level == "very_detailed":
+            num_beams = 8
+            temperature = 0.9
+            repetition_penalty = 1.2
+        elif detail_level == "detailed":
+            num_beams = 5
+            temperature = 1.0
+            repetition_penalty = 1.1
+        else:  # brief
+            num_beams = 3
+            temperature = 1.0
+            repetition_penalty = 1.0
         
         # Generate caption
         with torch.no_grad():
@@ -41,12 +47,32 @@ def generate_caption(image, processor, model, device, detail_level="detailed"):
                 **inputs,
                 max_length=length_params["max_length"],
                 min_length=length_params["min_length"],
-                num_beams=5,
-                temperature=1.0
+                num_beams=num_beams,
+                temperature=temperature,
+                repetition_penalty=repetition_penalty,
+                length_penalty=1.0,
+                early_stopping=True
             )
         
         # Decode caption
         caption = processor.decode(output[0], skip_special_tokens=True)
+        
+        # Enhance caption with more detail if needed
+        if detail_level == "very_detailed" and len(caption.split()) < 20:
+            # Generate a second, more detailed pass
+            with torch.no_grad():
+                output2 = model.generate(
+                    **inputs,
+                    max_length=150,
+                    num_beams=10,
+                    do_sample=True,
+                    top_k=50,
+                    top_p=0.95
+                )
+            caption2 = processor.decode(output2[0], skip_special_tokens=True)
+            # Use the longer, more detailed caption
+            if len(caption2.split()) > len(caption.split()):
+                caption = caption2
         
         # Capitalize first letter and add period if missing
         caption = caption.strip()
