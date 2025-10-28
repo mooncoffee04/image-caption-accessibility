@@ -8,4 +8,3 @@ easyocr
 numpy
 opencv-python-headless
 SpeechRecognition
-pyaudio
