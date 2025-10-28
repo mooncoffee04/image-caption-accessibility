@@ -80,8 +80,74 @@ def inject_accessibility_script():
     """
     components.html(accessibility_js, height=0)
 
+def add_haptic_feedback():
+    """Add vibration feedback for mobile devices"""
+    return """
+    <script>
+    if ('vibrate' in navigator) {
+        navigator.vibrate(50); // Quick vibration feedback
+    }
+    </script>
+    """
+
 def main():
     """Main application function"""
+
+    # Mobile-optimized CSS
+    st.markdown("""
+    <style>
+    /* Larger touch targets for mobile */
+    .stButton > button {
+        height: 60px !important;
+        font-size: 18px !important;
+        font-weight: bold !important;
+        margin: 10px 0 !important;
+    }
+    
+    /* Larger radio buttons */
+    .stRadio > div {
+        font-size: 18px !important;
+        padding: 15px 0 !important;
+    }
+    
+    /* Larger checkboxes */
+    .stCheckbox > label {
+        font-size: 18px !important;
+        padding: 15px 0 !important;
+    }
+    
+    /* Larger text for descriptions */
+    .stMarkdown {
+        font-size: 18px !important;
+        line-height: 1.8 !important;
+    }
+    
+    /* Better spacing on mobile */
+    @media (max-width: 768px) {
+        .stButton > button {
+            height: 70px !important;
+            font-size: 20px !important;
+        }
+        
+        /* Full width camera button */
+        .stCameraInput {
+            width: 100% !important;
+        }
+    }
+    
+    /* High contrast for visibility */
+    .stButton > button:hover {
+        background-color: #1565C0 !important;
+        border: 3px solid #000 !important;
+    }
+    
+    /* Focus indicators for keyboard navigation */
+    *:focus {
+        outline: 4px solid #FF9800 !important;
+        outline-offset: 2px !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
     
     # Title and description
     st.title(APP_TITLE)
@@ -204,8 +270,8 @@ def main():
                 components.html("""
                 <script>
                 if ('speechSynthesis' in window) {
-                    const utterance = new SpeechSynthesisUtterance('Photo captured. Processing now.');
-                    utterance.rate = 1.0;
+                    const utterance = new SpeechSynthesisUtterance('Photo captured successfully. Analyzing image now.');
+                    utterance.rate = 1.2;
                     window.speechSynthesis.speak(utterance);
                 }
                 </script>
@@ -228,17 +294,17 @@ def main():
         
         # Display image
         st.divider()
-        col1, col2 = st.columns([1, 1])
         
-        with col1:
+        # Mobile-friendly: single column layout on small screens
+        if st.session_state.get('mobile_view', True):
             st.subheader("📷 Your Image")
             st.image(image, use_column_width=True)
             
             # Image info
             img_info = get_image_info(image)
             st.caption(f"Size: {img_info['width']} × {img_info['height']} pixels")
-        
-        with col2:
+            
+            st.divider()
             st.subheader("🤖 AI Analysis")
             
             # Initialize session state for voice commands and auto-analyze
@@ -284,6 +350,9 @@ def main():
                 # Display caption
                 st.markdown("#### 📝 Description:")
                 st.info(caption)
+
+                # Haptic feedback on mobile
+                components.html(add_haptic_feedback(), height=0)
 
                 # Announce completion
                 if auto_play:
