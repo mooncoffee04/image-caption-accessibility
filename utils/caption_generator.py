@@ -24,9 +24,6 @@ def generate_caption(image, processor, model, device, detail_level="detailed"):
         # Get length parameters
         length_params = CAPTION_LENGTHS.get(detail_level, CAPTION_LENGTHS["detailed"])
         
-        # Process image with few-shot prompt
-        inputs = processor(image, text=prompt, return_tensors="pt").to(device)
-
         # Add detailed prompt for better descriptions
         if detail_level == "very_detailed":
             prompt = "Describe this image in detail, including colors, objects, people, activities, setting, and mood:"
@@ -35,7 +32,7 @@ def generate_caption(image, processor, model, device, detail_level="detailed"):
         else:
             prompt = "Briefly describe this image:"
         
-        # Process with prompt
+        # Process image with prompt
         inputs = processor(image, text=prompt, return_tensors="pt").to(device)
         
         # Generate caption
