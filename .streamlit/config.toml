@@ -1,0 +1,23 @@
+[theme]
+# High contrast accessibility theme
+primaryColor = "#1E88E5"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F0F2F6"
+textColor = "#000000"
+font = "sans serif"
+
+[server]
+# Server settings
+headless = true
+port = 8501
+enableCORS = false
+enableXsrfProtection = true
+
+[browser]
+# Browser settings
+gatherUsageStats = false
+
+[runner]
+# Runner settings
+magicEnabled = true
+fastReruns = true
